@@ -9,9 +9,9 @@
   "image_partage": "assets/hero.svg",
   "goatcounter": "https://fionabagsmarket.github.io/catalogue/",
   "couleurs": {
-    "fond": "#faf4f2",
-    "nav": "#2a0e0b",
-    "accent": "#c0392b",
-    "texte": "#2a1614"
+    "fond": "#f7f3ee",
+    "nav": "#140f0a",
+    "accent": "#b5893f",
+    "texte": "#1a1410"
   }
 }
