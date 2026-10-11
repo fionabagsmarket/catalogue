@@ -7,11 +7,11 @@
   "site_url": "https://fionabagsmarket.github.io/catalogue/",
   "image_hero": "assets/hero.svg",
   "image_partage": "assets/hero.svg",
-  "goatcounter": "maboutique",
+  "goatcounter": "https://fionabagsmarket.github.io/catalogue/",
   "couleurs": {
-    "fond": "#f2f6f9",
-    "nav": "#0e1f2c",
-    "accent": "#2980b9",
-    "texte": "#13202b"
+    "fond": "#faf4f2",
+    "nav": "#2a0e0b",
+    "accent": "#c0392b",
+    "texte": "#2a1614"
   }
 }
