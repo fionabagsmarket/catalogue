@@ -9,6 +9,7 @@ Lit data/config.json et data/products.json et produit :
 Lancé par GitHub Actions à chaque modification des données,
 ou en local : python3 scripts/build.py
 """
+import hashlib
 import json
 import os
 import re
@@ -87,9 +88,10 @@ def page_produit(p):
         opts += ('<div style="font-size:.72rem;text-transform:uppercase;color:#999;margin-top:14px">Couleurs</div>'
                  '<div class="opts">' + "".join(f'<span class="opt">{echapper(c)}</span>' for c in p["couleurs"]) + "</div>")
 
+    gc_code = re.sub(r"[^a-zA-Z0-9-]", "", str(cfg.get("goatcounter") or ""))
     gc = ""
-    if cfg.get("goatcounter"):
-        gc = f'<script async src="https://gc.zgo.at/count.js" data-goatcounter="https://{echapper(cfg["goatcounter"])}.goatcounter.com/count"></script>'
+    if gc_code:
+        gc = f'<script async src="https://gc.zgo.at/count.js" data-goatcounter="https://{echapper(gc_code)}.goatcounter.com/count"></script>'
 
     description = echapper(p.get("description") or "").replace("\n", "<br>")
     titre_og = f"{p['nom']} — {nom_boutique}"
@@ -220,6 +222,14 @@ for p in produits:
 # products.json reste la source unique éditée par l'admin : seul le build découpe.
 taille_lot = int(os.environ.get("TAILLE_LOT", "50"))
 actifs = [p for p in produits if p.get("actif") is not False]
+
+# Empreinte du catalogue + de la config : change à chaque publication.
+# La vitrine s'en sert pour invalider le cache navigateur des clients.
+empreinte = hashlib.sha1()
+empreinte.update((RACINE / "data" / "products.json").read_bytes())
+empreinte.update((RACINE / "data" / "config.json").read_bytes())
+version = empreinte.hexdigest()[:10]
+
 dir_lots = RACINE / "data" / "lots"
 if dir_lots.exists():
     shutil.rmtree(dir_lots)
@@ -232,12 +242,12 @@ for debut in range(0, len(actifs), taille_lot):
         encoding="utf-8")
     noms_lots.append(nom)
 (dir_lots / "manifest.json").write_text(
-    json.dumps({"total": len(actifs), "taille_lot": taille_lot, "lots": noms_lots},
+    json.dumps({"total": len(actifs), "taille_lot": taille_lot, "version": version, "lots": noms_lots},
                ensure_ascii=False, indent=2) + "\n",
     encoding="utf-8")
 
 maj_og_index()
 
 print(f"✓ {total} page(s) produit générée(s) dans /produit")
-print(f"✓ catalogue découpé en {len(noms_lots)} lot(s) de {taille_lot} (data/lots/)")
+print(f"✓ catalogue découpé en {len(noms_lots)} lot(s) de {taille_lot} — version du build : {version}")
 print("✓ sitemap.xml, robots.txt et balises OG de index.html mis à jour")

@@ -414,7 +414,8 @@
 
     /* ---------- Statistiques (GoatCounter, optionnel) ---------- */
     function chargerStats() {
-      if (!cfg || !cfg.goatcounter) return;
+      // Le champ doit contenir un code simple (ex: maboutique), pas une URL
+      if (!cfg || !cfg.goatcounter || /[^a-zA-Z0-9-]/.test(cfg.goatcounter)) return;
       const s = document.createElement('script');
       s.async = true;
       s.src = 'https://gc.zgo.at/count.js';
@@ -432,6 +433,14 @@
     let promesseChargement = null;
     let rendus = 0; // cartes déjà affichées pour le filtre/recherche courant
     let observateur = null;
+    let versionCatalogue = ''; // empreinte du build : change à chaque publication
+
+    // Signe les URL de données avec la version du build : le navigateur garde ses
+    // copies en cache entre deux visites, mais les rafraîchit dès qu'une
+    // publication change la version (plus besoin de vider le cache).
+    function urlVersionnee(url) {
+      return versionCatalogue ? url + '?v=' + encodeURIComponent(versionCatalogue) : url;
+    }
 
     // Filtre les articles actifs et les mélange (en stock d'abord, épuisés à la fin)
     function preparer(liste) {
@@ -441,13 +450,11 @@
       return [...enStock, ...epuises];
     }
 
-    async function chargerCatalogue() {
-      let manifest = null;
-      try { manifest = await (await fetch(MANIFEST_URL)).json(); } catch (e) { manifest = null; }
+    async function chargerCatalogue(manifest) {
       if (manifest && Array.isArray(manifest.lots)) {
         if (manifest.lots.length === 0) { produits = []; lotsTousCharges = true; return; }
         // Premier lot : affichage immédiat
-        produits = preparer(await fetch('data/lots/' + manifest.lots[0]).then(r => r.json()));
+        produits = preparer(await fetch(urlVersionnee('data/lots/' + manifest.lots[0])).then(r => r.json()));
         // Le reste arrive en arrière-plan pendant que le client regarde
         promesseChargement = chargerLotsRestants(manifest.lots.slice(1));
       } else {
@@ -460,7 +467,7 @@
     async function chargerLotsRestants(noms) {
       if (!noms.length) { finaliserChargement(); return; }
       try {
-        const morceaux = await Promise.all(noms.map(n => fetch('data/lots/' + n).then(r => r.json())));
+        const morceaux = await Promise.all(noms.map(n => fetch(urlVersionnee('data/lots/' + n)).then(r => r.json())));
         produits = produits.concat(preparer(morceaux.flat()));
         finaliserChargement();
       } catch (e) {
@@ -494,12 +501,19 @@
     }
 
     async function init() {
+      // 1. Le manifeste (minuscule, toujours demandé hors cache) annonce la version
+      //    du dernier build publié : c'est lui qui invalide le cache des données.
+      let manifest = null;
+      try { manifest = await (await fetch(MANIFEST_URL, { cache: 'no-store' })).json(); } catch (e) { manifest = null; }
+      if (manifest && typeof manifest.version === 'string') versionCatalogue = manifest.version;
+
+      // 2. Configuration, signée avec cette version
       let configCharge = null;
-      try { configCharge = await (await fetch(CONFIG_URL)).json(); } catch (e) { console.warn('config.json introuvable, valeurs par défaut'); }
+      try { configCharge = await (await fetch(urlVersionnee(CONFIG_URL))).json(); } catch (e) { console.warn('config.json introuvable, valeurs par défaut'); }
       if (configCharge) appliquerConfig(configCharge);
 
       try {
-        await chargerCatalogue();
+        await chargerCatalogue(manifest);
       } catch (e) {
         document.getElementById('grille-produits').innerHTML = '<p style="text-align:center;grid-column:1/-1;color:gray">Impossible de charger le catalogue (data/products.json).</p>';
         return;

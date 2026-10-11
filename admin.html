@@ -797,10 +797,15 @@
     }
 
     function majLienGC() {
-      const code = document.getElementById('c-goatcounter').value.trim().replace(/[^a-zA-Z0-9-]/g, '');
-      document.getElementById('gc-lien').innerHTML = code
-        ? '📊 <a href="https://' + code + '.goatcounter.com" target="_blank" rel="noopener">Voir vos statistiques →</a>'
-        : 'Laisser vide pour désactiver les statistiques.';
+      const brut = document.getElementById('c-goatcounter').value.trim();
+      const champ = document.getElementById('gc-lien');
+      if (!brut) { champ.textContent = 'Laisser vide pour désactiver les statistiques.'; return; }
+      if (/https?:|\/|\./i.test(brut)) {
+        champ.innerHTML = '<span style="color:var(--rouge)">⚠️ Ceci ressemble à une adresse web. Collez uniquement le <b>code</b> choisi sur goatcounter.com (ex: maboutique), pas l\'URL de ton site.</span>';
+        return;
+      }
+      const code = brut.replace(/[^a-zA-Z0-9-]/g, '');
+      champ.innerHTML = '📊 <a href="https://' + code + '.goatcounter.com" target="_blank" rel="noopener">Voir vos statistiques →</a>';
     }
     document.getElementById('c-goatcounter').addEventListener('input', majLienGC);
 
@@ -875,6 +880,7 @@
     });
 
     document.getElementById('btn-sauver-apparence').addEventListener('click', () => {
+      const gcBrut = document.getElementById('c-goatcounter').value.trim();
       config = {
         nom_boutique: document.getElementById('c-nom').value.trim() || 'Boutique',
         titre_hero: document.getElementById('c-titre-hero').value.trim(),
@@ -884,7 +890,7 @@
         site_url: document.getElementById('c-site-url').value.trim(),
         image_hero: document.getElementById('c-image-hero').value.trim() || 'assets/hero.svg',
         image_partage: document.getElementById('c-image-partage').value.trim() || 'assets/hero.svg',
-        goatcounter: document.getElementById('c-goatcounter').value.trim(),
+        goatcounter: gcBrut,
         couleurs: {
           fond: document.getElementById('col-fond').value,
           nav: document.getElementById('col-nav').value,
@@ -892,8 +898,14 @@
           texte: document.getElementById('col-texte').value
         }
       };
+      // Une URL collée par mégarde produirait des statistiques cassées : on la vide avec une explication
       modifie = true;
-      afficherToast('✓ Apparence modifiée (local) — pensez à Publier');
+      if (/https?:|\/|\./i.test(gcBrut)) {
+        config.goatcounter = '';
+        afficherToast('⚠️ Champ GoatCounter : une adresse web a été détectée et vidée. Collez uniquement le code choisi sur goatcounter.com (ex: maboutique).', 6000);
+      } else {
+        afficherToast('✓ Apparence modifiée (local) — pensez à Publier');
+      }
     });
 
     /* ---------- Onglets ---------- */

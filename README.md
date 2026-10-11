@@ -21,6 +21,7 @@ couleurs personnalisables, mélange des produits à chaque visite.
 - **Recherche visible et réactive** : la barre reste en haut en permanence ; dès la première lettre, défilement vers les résultats, compteur (« 8 articles trouvés pour “sac” »), mots correspondants surlignés en couleur d'accent, articles au nom correspondant en tête, état vide avec retour en un clic.
 - **Mélange des produits** à chaque visite (Fisher-Yates), articles épuisés en fin de liste.
 - **Chargement progressif** : le build découpe le catalogue en lots de 50 (`data/lots/`) ; la vitrine affiche le premier lot immédiatement, télécharge le reste en arrière-plan et montre les articles par vagues de 12 au défilement — conçu pour tenir plusieurs centaines d'articles sans ralentir les connexions mobiles.
+- **Mises à jour visibles immédiatement** : chaque publication grave une version du catalogue dans le manifeste ; la vitrine le consulte hors cache à chaque visite et recharge les données seulement quand la version change. Les clients voient tes nouveaux articles dès leur prochaine visite, sans jamais vider leur cache.
 - **Couleurs personnalisables** dans l'admin avec aperçu en direct et palettes suggérées.
 - **QR code de la boutique** téléchargeable dans l'admin (à coller en boutique physique ou sur les colis).
 - **« Copier le lien WhatsApp »** par produit dans l'admin : message prêt à coller dans les statuts et groupes.
