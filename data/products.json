@@ -10,9 +10,14 @@
     "devise": "FCFA",
     "description": "Sac à main en cuir véritable, finitions soignées et bandoulière ajustable.\nFormat idéal pour le quotidien comme pour les occasions.\nLivraison possible sur Lomé et environs.",
     "image": "assets/produits/demo-sac.svg",
-    "images": ["assets/produits/demo-sac.svg"],
+    "images": [
+      "assets/produits/demo-sac.svg"
+    ],
     "tailles": [],
-    "couleurs": ["Camel", "Noir"],
+    "couleurs": [
+      "Camel",
+      "Noir"
+    ],
     "actif": true
   },
   {
@@ -26,7 +31,9 @@
     "devise": "FCFA",
     "description": "Eau de parfum aux notes boisées et orientales.\nTenue longue durée, flacon 50 ml.\nProduit original sous blister.",
     "image": "assets/produits/demo-parfum.svg",
-    "images": ["assets/produits/demo-parfum.svg"],
+    "images": [
+      "assets/produits/demo-parfum.svg"
+    ],
     "tailles": [],
     "couleurs": [],
     "actif": true
@@ -42,9 +49,18 @@
     "devise": "FCFA",
     "description": "Robe coupe ajustée en wax authentique.\nConfection locale, coutures renforcées.\nDisponible en plusieurs tailles et coloris.",
     "image": "assets/produits/demo-robe.svg",
-    "images": ["assets/produits/demo-robe.svg"],
-    "tailles": ["S", "M", "L"],
-    "couleurs": ["Bleu", "Orange"],
+    "images": [
+      "assets/produits/demo-robe.svg"
+    ],
+    "tailles": [
+      "S",
+      "M",
+      "L"
+    ],
+    "couleurs": [
+      "Bleu",
+      "Orange"
+    ],
     "actif": true
   },
   {
@@ -58,9 +74,13 @@
     "devise": "FCFA",
     "description": "Montre à quartz, bracelet acier doré.\nÉtanche, boîte cadeau offerte.",
     "image": "assets/produits/demo-montre.svg",
-    "images": ["assets/produits/demo-montre.svg"],
+    "images": [
+      "assets/produits/demo-montre.svg"
+    ],
     "tailles": [],
-    "couleurs": ["Doré"],
+    "couleurs": [
+      "Doré"
+    ],
     "actif": true
   }
 ]
