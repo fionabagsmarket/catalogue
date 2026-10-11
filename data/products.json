@@ -1,5 +1,23 @@
 [
   {
+    "id": 3,
+    "slug": "go",
+    "nom": "go",
+    "categorie": "Sacs",
+    "prix": 1000,
+    "prix_barre": null,
+    "stock": 0,
+    "devise": "FCFA",
+    "description": "bre",
+    "image": "assets/produits/1791745136703_vqeajx.webp",
+    "images": [
+      "assets/produits/1791745136703_vqeajx.webp"
+    ],
+    "tailles": [],
+    "couleurs": [],
+    "actif": true
+  },
+  {
     "id": 1,
     "slug": "sac-cuir-camel",
     "nom": "Sac en cuir camel",
