@@ -4,14 +4,14 @@
   "texte_hero": "Des pièces pensées pour sublimer votre style. Qualité premium, design exclusif.",
   "whatsapp": "22870901801",
   "devise": "FCFA",
-  "site_url": "https://VOTRE-UTILISATEUR.github.io/VOTRE-REPO/",
+  "site_url": "https://fionabagsmarket.github.io/catalogue/",
   "image_hero": "assets/hero.svg",
   "image_partage": "assets/hero.svg",
   "goatcounter": "",
   "couleurs": {
-    "fond": "#F7F3EE",
-    "nav": "#140F0A",
-    "accent": "#B5893F",
-    "texte": "#1A1410"
+    "fond": "#f7f3ee",
+    "nav": "#140f0a",
+    "accent": "#b5893f",
+    "texte": "#1a1410"
   }
 }
