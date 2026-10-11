@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Administration — Catalogue</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --fond: #F7F3EE; --blanc: #FFFFFF; --texte: #1A1410; --texte-2: #7A6A5A;
+      --or: #B5893F; --pierre: #E8DDD2; --nav: #140F0A; --vert: #27AE60;
+      --rouge: #C0392B; --bleu: #2980B9; --rayon: 10px; --ombre: 0 2px 16px rgba(26,20,10,.08);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-font-smoothing:antialiased}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fond);color:var(--texte);min-height:100vh}
+
+    /* CONNEXION */
+    .login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:var(--nav)}
+    .login-box{background:var(--blanc);border-radius:20px;padding:48px 40px;width:min(430px,100%);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    .login-logo{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--or);letter-spacing:4px;text-transform:uppercase;margin-bottom:8px;text-align:center}
+    .login-box h2{font-size:.95rem;color:var(--texte-2);font-weight:400;margin-bottom:28px;text-align:center}
+    .login-input{width:100%;padding:12px 16px;border:1.5px solid var(--pierre);border-radius:8px;font-family:inherit;font-size:.95rem;outline:none;margin-bottom:14px}
+    .login-input:focus{border-color:var(--or)}
+    .login-btn{width:100%;padding:13px;background:var(--or);color:var(--nav);border:none;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit}
+    .login-aide{font-size:.78rem;color:var(--texte-2);margin-top:18px;line-height:1.7;background:#FAF7F3;border-radius:10px;padding:14px}
+    .login-aide a{color:var(--bleu)}
+    .login-erreur{color:var(--rouge);font-size:.82rem;margin-top:12px;display:none;text-align:center}
+    .login-erreur.visible{display:block}
+
+    /* PAGE ADMIN */
+    .admin-page{display:none}
+    .admin-page.visible{display:block}
+    .topbar{background:var(--nav);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4%,40px);position:sticky;top:0;z-index:100;gap:10px;flex-wrap:wrap}
+    .topbar-logo{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--or);text-decoration:none}
+    .topbar-droite{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .topbar-btn{background:none;border:1px solid rgba(255,255,255,.15);color:#fff;padding:7px 14px;border-radius:6px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;text-decoration:none;font-size:.8rem;font-family:inherit}
+    .topbar-btn.publier{background:var(--or);border-color:var(--or);color:var(--nav);font-weight:600}
+    .topbar-btn.publier:disabled{opacity:.6;cursor:wait}
+    .etat-connexion{font-size:.72rem;color:rgba(255,255,255,.55)}
+
+    .admin-main{max-width:1100px;margin:0 auto;padding:30px clamp(16px,4%,40px) 60px}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px;margin-bottom:24px}
+    .stat-card{background:var(--blanc);border-radius:var(--rayon);padding:18px;box-shadow:var(--ombre)}
+    .stat-label{font-size:.7rem;font-weight:600;color:var(--texte-2);text-transform:uppercase}
+    .stat-val{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:600}
+
+    .actions-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+    .btn-ajouter{background:var(--or);color:var(--nav);padding:10px 22px;border:none;border-radius:8px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:inherit}
+    .recherche-admin{margin-left:auto;padding:9px 14px;border:1.5px solid var(--pierre);border-radius:8px;min-width:180px;font-family:inherit}
+    .note-brouillon{font-size:.78rem;color:var(--texte-2);margin-bottom:16px;background:#FFF8E8;border:1px solid #F0E2B6;border-radius:8px;padding:10px 14px}
+    .note-brouillon b{color:var(--rouge)}
+
+    .table-wrap{background:var(--blanc);border-radius:14px;box-shadow:var(--ombre);overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+    table{min-width:640px;width:100%;border-collapse:collapse}
+    th{padding:14px 16px;text-align:left;font-size:.7rem;color:var(--texte-2);text-transform:uppercase;background:#FAF7F3}
+    td{padding:14px 16px;border-top:1px solid var(--pierre);vertical-align:middle}
+    .td-image img{width:52px;height:52px;object-fit:cover;border-radius:8px;background:var(--pierre)}
+    .badge-inactif{display:inline-block;background:var(--pierre);color:var(--texte-2);font-size:.68rem;padding:2px 8px;border-radius:100px;margin-left:6px}
+    .btn-edit,.btn-del{background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;font-size:1rem}
+    .btn-edit{color:var(--bleu)} .btn-del{color:var(--rouge)}
+
+    /* FORMULAIRE PRODUIT */
+    .form-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(20,15,10,.6);align-items:center;justify-content:center;padding:20px}
+    .form-overlay.ouverte{display:flex}
+    .form-modal{background:#fff;border-radius:20px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto}
+    .form-header{display:flex;justify-content:space-between;align-items:center;padding:24px;border-bottom:1px solid var(--pierre)}
+    .form-corps{padding:24px;display:flex;flex-direction:column;gap:18px}
+    .form-group{display:flex;flex-direction:column;gap:6px}
+    .form-group-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:560px){.form-group-row{grid-template-columns:1fr}}
+    .form-label{font-size:.75rem;font-weight:600;color:var(--texte-2);text-transform:uppercase}
+    .form-input,.form-select,.form-textarea{padding:11px;border:1.5px solid var(--pierre);border-radius:8px;font-family:inherit}
+    .form-textarea{min-height:80px}
+    .form-check{display:flex;align-items:center;gap:10px;font-size:.9rem}
+    .galerie-previews{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .galerie-preview-item{position:relative;width:72px;height:72px}
+    .galerie-preview-item img{width:100%;height:100%;object-fit:cover;border-radius:8px;background:var(--pierre)}
+    .btn-suppr-img{position:absolute;top:-6px;right:-6px;background:var(--rouge);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer}
+    .tags-input-wrap{display:flex;flex-wrap:wrap;gap:7px;padding:10px;border:1.5px solid var(--pierre);border-radius:8px;min-height:48px;cursor:text}
+    .tag-chip{background:var(--fond);border:1px solid var(--pierre);padding:3px 10px;border-radius:100px;font-size:.78rem;display:flex;align-items:center;gap:5px}
+    .tag-chip button{background:none;border:none;color:var(--rouge);cursor:pointer}
+    .tags-input{border:none;outline:none;flex:1;min-width:80px;background:transparent;font-family:inherit}
+    .form-footer{display:flex;gap:10px;justify-content:flex-end;padding-top:10px;border-top:1px solid var(--pierre)}
+    .btn-annuler{background:transparent;border:1.5px solid var(--pierre);padding:11px 22px;border-radius:8px;cursor:pointer;font-family:inherit}
+    .btn-sauver{background:var(--or);color:var(--nav);padding:11px 28px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit}
+
+    /* APPARENCE */
+    .apparence-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:start}
+    @media(max-width:820px){.apparence-grid{grid-template-columns:1fr}}
+    .carte-section{background:var(--blanc);border-radius:14px;box-shadow:var(--ombre);padding:24px}
+    .carte-section h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:18px}
+    .apercu{border-radius:14px;overflow:hidden;box-shadow:var(--ombre);position:sticky;top:80px}
+    .apercu-nav{background:var(--ap-nav);height:48px;display:flex;align-items:center;padding:0 16px}
+    .apercu-nav span{font-family:'Cormorant Garamond',serif;color:var(--ap-accent);font-size:1.1rem;letter-spacing:2px;text-transform:uppercase}
+    .apercu-corps{background:var(--ap-fond);padding:18px}
+    .apercu-carte{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.08);max-width:200px}
+    .apercu-img{height:90px;background:var(--ap-accent);opacity:.25}
+    .apercu-carte-corps{padding:10px}
+    .apercu-nom{font-family:'Cormorant Garamond',serif;font-weight:600;color:var(--ap-texte)}
+    .apercu-prix{color:var(--ap-accent);font-weight:700;font-size:.85rem}
+    .apercu-btn{margin-top:8px;background:var(--ap-texte);color:#fff;border-radius:6px;padding:5px;text-align:center;font-size:.65rem;text-transform:uppercase}
+    .couleur-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px}
+    .couleur-row input[type=color]{width:52px;height:38px;border:1.5px solid var(--pierre);border-radius:8px;padding:2px;background:#fff;cursor:pointer}
+
+    .aide-box{background:var(--blanc);border-radius:14px;box-shadow:var(--ombre);padding:24px;margin-top:24px;font-size:.88rem;line-height:1.8}
+    .aide-box h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;margin-bottom:10px}
+    .aide-box a{color:var(--bleu)}
+    .aide-box ol{padding-left:20px;display:flex;flex-direction:column;gap:6px}
+
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--nav);color:#fff;padding:12px 24px;border-radius:100px;font-size:.85rem;z-index:1000;transition:transform .4s;opacity:0;max-width:90vw;text-align:center}
+    .toast.visible{transform:translateX(-50%) translateY(0);opacity:1}
+  </style>
+</head>
+<body>
+
+  <!-- CONNEXION -->
+  <div class="login-page" id="login-page">
+    <div class="login-box">
+      <div class="login-logo">Catalogue</div>
+      <h2>Administration du catalogue</h2>
+      <input class="login-input" type="text" id="login-repo" placeholder="Dépôt GitHub (ex: moncompte/mon-catalogue)" />
+      <input class="login-input" type="text" id="login-branche" placeholder="Branche (ex: main)" value="main" />
+      <input class="login-input" type="password" id="login-token" placeholder="Token GitHub (PAT)" />
+      <button class="login-btn" id="btn-connexion">Se connecter →</button>
+      <p class="login-erreur" id="login-erreur"></p>
+      <div class="login-aide">
+        <b>Comment obtenir un token ?</b><br>
+        GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token.<br>
+        Sélectionnez uniquement ce dépôt et donnez la permission <b>Contents : Read and write</b>.
+        Le token reste dans votre navigateur et n'est jamais publié. <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">Créer un token →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="admin-page" id="admin-page">
+    <div class="topbar">
+      <a href="index.html" class="topbar-logo" target="_blank" id="lien-boutique">Catalogue</a>
+      <div class="topbar-droite">
+        <span class="etat-connexion" id="etat-connexion"></span>
+        <button class="topbar-btn" id="onglet-produits">📦 Produits</button>
+        <button class="topbar-btn" id="onglet-apparence">🎨 Apparence</button>
+        <button class="topbar-btn publier" id="btn-publier">💾 Publier</button>
+        <button class="topbar-btn" id="btn-deconnexion">Déconnexion</button>
+      </div>
+    </div>
+
+    <div class="admin-main">
+      <!-- ONGLET PRODUITS -->
+      <div id="vue-produits">
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="note-brouillon" id="note-brouillon">
+          Les modifications sont d'abord locales. Cliquez sur <b>💾 Publier</b> pour enregistrer sur GitHub.
+        </div>
+        <div class="actions-bar">
+          <button class="btn-ajouter" id="btn-ajouter">+ Ajouter un article</button>
+          <input class="recherche-admin" type="text" id="recherche-admin" placeholder="Rechercher..." />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:60px">Image</th>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th>Prix</th>
+                <th>Stock</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="aide-box">
+          <h3>Après chaque publication</h3>
+          GitHub Actions régénère automatiquement les pages produits et l'aperçu WhatsApp (~1 minute).
+          Vérifiez l'onglet <b>Actions</b> de votre dépôt en cas de doute. Les statistiques de visites sont
+          disponibles sur <a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a> une fois le code configuré dans Apparence.
+        </div>
+      </div>
+
+      <!-- ONGLET APPARENCE -->
+      <div id="vue-apparence" style="display:none">
+        <div class="apparence-grid">
+          <div class="carte-section">
+            <h2>Identité de la boutique</h2>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="form-group-row">
+                <div class="form-group"><label class="form-label">Nom de la boutique</label><input class="form-input" id="c-nom" /></div>
+                <div class="form-group"><label class="form-label">Devise par défaut</label>
+                  <select class="form-select" id="c-devise"><option>FCFA</option><option>EUR</option><option>USD</option><option>GHS</option><option>MAD</option></select>
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">Titre du bandeau</label><input class="form-input" id="c-titre-hero" /></div>
+              <div class="form-group"><label class="form-label">Texte du bandeau</label><textarea class="form-textarea" id="c-texte-hero" style="min-height:60px"></textarea></div>
+              <div class="form-group"><label class="form-label">Numéro WhatsApp (sans + ni espaces)</label><input class="form-input" id="c-whatsapp" inputmode="numeric" /></div>
+              <div class="form-group"><label class="form-label">URL publique du site (pour les aperçus WhatsApp)</label><input class="form-input" id="c-site-url" placeholder="https://moncompte.github.io/mon-catalogue/" /></div>
+              <div class="form-group-row">
+                <div class="form-group"><label class="form-label">Image du hero (URL ou chemin)</label><input class="form-input" id="c-image-hero" /></div>
+                <div class="form-group"><label class="form-label">Image de partage (URL absolue)</label><input class="form-input" id="c-image-partage" /></div>
+              </div>
+              <div class="form-group"><label class="form-label">Compte GoatCounter (statistiques, optionnel — ex: maboutique)</label><input class="form-input" id="c-goatcounter" placeholder="laisser vide pour désactiver" /><p id="gc-lien" style="font-size:.78rem;color:var(--texte-2);margin-top:5px"></p></div>
+
+              <h2 style="margin-top:10px">Couleurs du site</h2>
+              <div class="couleur-row"><label class="form-label">Couleur d'accent (boutons, prix, logo)</label><input type="color" id="col-accent" /></div>
+              <div class="couleur-row"><label class="form-label">Fond de la barre et du hero</label><input type="color" id="col-nav" /></div>
+              <div class="couleur-row"><label class="form-label">Fond de la page</label><input type="color" id="col-fond" /></div>
+              <div class="couleur-row"><label class="form-label">Couleur du texte</label><input type="color" id="col-texte" /></div>
+
+              <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                <button class="btn-sauver" id="btn-sauver-apparence" style="background:var(--or);color:var(--nav);padding:11px 28px;border:none;border-radius:8px;font-weight:600;cursor:pointer">Enregistrer l'apparence (local)</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="apercu" id="apercu">
+              <div class="apercu-nav"><span id="apercu-nom-boutique">Boutique</span></div>
+              <div class="apercu-corps">
+                <div class="apercu-carte">
+                  <div class="apercu-img"></div>
+                  <div class="apercu-carte-corps">
+                    <div class="apercu-nom">Article vedette</div>
+                    <div class="apercu-prix">25 000 FCFA</div>
+                    <div class="apercu-btn">Voir détails</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="aide-box" style="margin-top:20px">
+              <h3>Palettes suggérées</h3>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="topbar-btn" style="background:#B5893F;border-color:#B5893F;color:#140F0A" data-palette="#B5893F,#140F0A,#F7F3EE,#1A1410">Or &amp; Nuit</button>
+                <button class="topbar-btn" style="background:#1B7A5A;border-color:#1B7A5A;color:#fff" data-palette="#1B7A5A,#0E2B22,#F4F7F5,#16281F">Émeraude</button>
+                <button class="topbar-btn" style="background:#C0392B;border-color:#C0392B;color:#fff" data-palette="#C0392B,#2A0E0B,#FAF4F2,#2A1614">Terracotta</button>
+                <button class="topbar-btn" style="background:#2980B9;border-color:#2980B9;color:#fff" data-palette="#2980B9,#0E1F2C,#F2F6F9,#13202B">Océan</button>
+              </div>
+            </div>
+
+            <div class="aide-box" style="margin-top:20px">
+              <h3>QR code de la boutique</h3>
+              <p style="font-size:.82rem;line-height:1.7;margin-bottom:14px">
+                À imprimer et coller en boutique physique, sur les colis ou les flyers :
+                vos clients scannent et arrivent directement sur votre catalogue.
+                Nécessite l'URL publique du site (champ ci-contre).
+              </p>
+              <button class="btn-sauver" id="btn-qr" style="background:var(--or);color:var(--nav);padding:11px 22px;border:none;border-radius:8px;font-weight:600;cursor:pointer">Générer le QR code</button>
+              <div id="qr-resultat" style="margin-top:16px;text-align:center"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULAIRE PRODUIT -->
+  <div class="form-overlay" id="form-overlay">
+    <div class="form-modal">
+      <div class="form-header">
+        <h2 id="form-titre" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem">Ajouter un article</h2>
+        <button class="btn-annuler" style="border:none;padding:6px 12px" id="btn-fermer-form">✕</button>
+      </div>
+      <div class="form-corps">
+        <div class="form-group-row">
+          <div class="form-group">
+            <label class="form-label">Nom de l'article *</label>
+            <input class="form-input" type="text" id="f-nom" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Catégorie *</label>
+            <input class="form-input" type="text" id="f-cat" list="cats-list" />
+            <datalist id="cats-list"></datalist>
+          </div>
+        </div>
+
+        <div class="form-group-row">
+          <div class="form-group">
+            <label class="form-label">Prix actuel *</label>
+            <input class="form-input" type="number" id="f-prix" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ancien prix (promo, optionnel)</label>
+            <input class="form-input" type="number" id="f-prix-barre" min="0" />
+          </div>
+        </div>
+
+        <div class="form-group-row">
+          <div class="form-group">
+            <label class="form-label">Stock disponible</label>
+            <input class="form-input" type="number" id="f-stock" min="0" value="10" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Devise</label>
+            <select class="form-select" id="f-devise"><option>FCFA</option><option>EUR</option><option>USD</option><option>GHS</option><option>MAD</option></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="f-desc"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Photos (compressées automatiquement en WebP)</label>
+          <input class="form-input" type="file" id="f-img-input" accept="image/*" multiple />
+          <div class="galerie-previews" id="galerie-previews"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tailles (Entrée pour valider)</label>
+          <div class="tags-input-wrap" id="tailles-wrap"><input class="tags-input" id="tailles-input" /></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Couleurs (Entrée pour valider)</label>
+          <div class="tags-input-wrap" id="couleurs-wrap"><input class="tags-input" id="couleurs-input" /></div>
+        </div>
+
+        <div class="form-check">
+          <input type="checkbox" id="f-actif" checked /> <label for="f-actif">Article visible sur le site</label>
+        </div>
+
+        <div class="form-footer">
+          <button class="btn-annuler" id="btn-annuler-form">Annuler</button>
+          <button class="btn-sauver" id="btn-sauver-form">💾 Enregistrer (local)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* =======================================================
+       ADMIN CATALOGUE — données stockées dans le dépôt GitHub
+       Aucun serveur : lecture/écriture via l'API GitHub officielle.
+    ======================================================= */
+    const CLE_SESSION = 'catalogue_admin_session';
+
+    let session = null;        // { repo: 'owner/name', branche: 'main', token: '...' }
+    let produits = [];         // copie locale du catalogue
+    let config = {};           // copie locale de la configuration
+    let shaProduits = null, shaConfig = null;
+    let modifie = false;
+    let produitEnEdition = null;
+    let taillesEnCours = [], couleursEnCours = [], imagesEnCours = [];
+    let termeRecherche = '';
+
+    /* ---------- Utilitaires ---------- */
+    function escapeHTML(str) {
+      if (typeof str !== 'string') return str == null ? '' : String(str);
+      return str.replace(/[&<>'"]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[tag]));
+    }
+    function afficherToast(msg, duree = 3000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('visible');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('visible'), duree);
+    }
+    function slugifier(txt) {
+      return (txt || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'produit';
+    }
+    function b64EncodeUtf8(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = '';
+      const CH = 0x8000;
+      for (let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode(...bytes.subarray(i, i + CH));
+      return btoa(bin);
+    }
+    function b64DecodeUtf8(b64) {
+      const bin = atob(b64.replace(/\s/g, ''));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+    async function apiGitHub(chemin, options = {}) {
+      const reponse = await fetch('https://api.github.com' + chemin, {
+        ...options,
+        headers: {
+          'Authorization': 'Bearer ' + session.token,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          ...(options.headers || {})
+        }
+      });
+      if (!reponse.ok) {
+        const info = await reponse.json().catch(() => ({}));
+        const err = new Error(info.message || ('Erreur GitHub ' + reponse.status));
+        err.status = reponse.status;
+        throw err;
+      }
+      return reponse.json();
+    }
+    function marquerModifie() {
+      modifie = true;
+      try { localStorage.setItem('catalogue_draft', JSON.stringify(produits)); } catch (e) {}
+    }
+    window.addEventListener('beforeunload', e => {
+      if (modifie) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    /* ---------- Détection automatique du dépôt ---------- */
+    function detecterDepot() {
+      const h = window.location.hostname, p = window.location.pathname;
+      if (h.endsWith('.github.io')) {
+        const owner = h.split('.')[0];
+        const segments = p.split('/').filter(Boolean);
+        const repo = segments.length ? owner + '/' + segments[0] : owner + '/' + h;
+        return repo;
+      }
+      return '';
+    }
+
+    /* ---------- Session ---------- */
+    async function seConnecter() {
+      const repo = document.getElementById('login-repo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '');
+      const branche = document.getElementById('login-branche').value.trim() || 'main';
+      const token = document.getElementById('login-token').value.trim();
+      const erreur = document.getElementById('login-erreur');
+      if (!repo.includes('/') || !token) {
+        erreur.textContent = 'Renseignez le dépôt (ex: compte/depot) et le token.';
+        erreur.classList.add('visible');
+        return;
+      }
+      session = { repo, branche, token };
+      const btn = document.getElementById('btn-connexion');
+      btn.disabled = true; btn.textContent = 'Connexion...';
+      try {
+        const info = await apiGitHub('/repos/' + repo);
+        localStorage.setItem(CLE_SESSION, JSON.stringify({ repo, branche }));
+        erreur.classList.remove('visible');
+        await apresConnexion(info);
+      } catch (e) {
+        erreur.textContent = e.status === 401 ? 'Token invalide ou expiré.'
+          : e.status === 404 ? 'Dépôt introuvable (vérifiez le nom et les accès du token).'
+          : 'Connexion impossible : ' + e.message;
+        erreur.classList.add('visible');
+        session = null;
+      }
+      btn.disabled = false; btn.textContent = 'Se connecter →';
+    }
+
+    async function apresConnexion() {
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('admin-page').classList.add('visible');
+      document.getElementById('etat-connexion').textContent = '● ' + session.repo;
+      document.getElementById('lien-boutique').textContent = 'Catalogue';
+      await chargerDonnees();
+    }
+
+    function seDeconnecter() {
+      if (modifie && !confirm('Des modifications non publiées seront perdues. Continuer ?')) return;
+      localStorage.removeItem(CLE_SESSION);
+      location.reload();
+    }
+
+    /* ---------- Chargement des données ---------- */
+    async function chargerFichier(chemin) {
+      try {
+        const data = await apiGitHub(`/repos/${session.repo}/contents/${chemin}?ref=${encodeURIComponent(session.branche)}`);
+        return { sha: data.sha, contenu: b64DecodeUtf8(data.content) };
+      } catch (e) {
+        if (e.status === 404) return null;
+        throw e;
+      }
+    }
+
+    async function ecrireFichier(chemin, contenu, sha, message) {
+      await apiGitHub(`/repos/${session.repo}/contents/${chemin}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message,
+          content: b64EncodeUtf8(contenu),
+          branch: session.branche,
+          ...(sha ? { sha } : {})
+        })
+      });
+    }
+
+    async function chargerDonnees() {
+      try {
+        const [prod, conf] = await Promise.all([chargerFichier('data/products.json'), chargerFichier('data/config.json')]);
+        shaProduits = prod ? prod.sha : null;
+        shaConfig = conf ? conf.sha : null;
+        produits = prod ? JSON.parse(prod.contenu) : [];
+        config = conf ? JSON.parse(conf.contenu) : {};
+
+        // Reprendre un brouillon local non publié, s'il existe
+        const brouillon = localStorage.getItem('catalogue_draft');
+        if (brouillon && confirm('Un brouillon local non publié a été trouvé. Le restaurer ?\n(Annuler = partir du catalogue publié sur GitHub)')) {
+          produits = JSON.parse(brouillon);
+          afficherToast('Brouillon local restauré');
+        } else {
+          localStorage.removeItem('catalogue_draft');
+        }
+        modifie = false;
+        rendreProduits();
+        remplirApparence();
+      } catch (e) {
+        afficherToast('❌ Erreur de chargement : ' + e.message, 5000);
+      }
+    }
+
+    /* ---------- Affichage des produits ---------- */
+    function rendreProduits() {
+      const tbody = document.getElementById('tbody');
+      const filtres = termeRecherche ? produits.filter(p => p.nom.toLowerCase().includes(termeRecherche)) : produits;
+
+      tbody.innerHTML = filtres.map(p => `
+        <tr>
+          <td class="td-image"><img src="${escapeHTML(p.images?.[0] || p.image || '')}" alt="" /></td>
+          <td><b>${escapeHTML(p.nom)}</b>${p.actif === false ? '<span class="badge-inactif">masqué</span>' : ''}<br><span style="font-size:.72rem;color:gray">${escapeHTML(p.slug || p.id)}</span></td>
+          <td>
+            ${escapeHTML(p.categorie)}<br>
+            <span style="font-size:.7rem;color:gray">${escapeHTML((p.tailles || []).join(', '))}</span><br>
+            <span style="font-size:.7rem;color:gray">${escapeHTML((p.couleurs || []).join(', '))}</span>
+          </td>
+          <td>
+            ${Number(p.prix || 0).toLocaleString('fr-FR')} ${escapeHTML(p.devise || config.devise || '')}
+            ${p.prix_barre ? `<br><s style="color:var(--rouge);font-size:.8rem">${Number(p.prix_barre).toLocaleString('fr-FR')}</s>` : ''}
+          </td>
+          <td><b>${p.stock || 0}</b></td>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="btn-edit" data-action="partager" data-id="${p.id}" title="Copier le lien WhatsApp du produit" style="color:var(--vert)">🔗</button>
+            <button class="btn-edit" data-action="edit" data-id="${p.id}" title="Modifier">✏️</button>
+            <button class="btn-del" data-action="del" data-id="${p.id}" title="Supprimer">🗑️</button>
+          </td>
+        </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:gray;padding:30px">Aucun article. Cliquez sur « + Ajouter ».</td></tr>';
+
+      const enStock = produits.filter(p => p.stock > 0).length;
+      document.getElementById('stats-grid').innerHTML = `
+        <div class="stat-card"><div class="stat-label">Articles</div><div class="stat-val">${produits.length}</div></div>
+        <div class="stat-card"><div class="stat-label">En stock</div><div class="stat-val">${enStock}</div></div>
+        <div class="stat-card"><div class="stat-label">Épuisés</div><div class="stat-val">${produits.length - enStock}</div></div>
+        <div class="stat-card"><div class="stat-label">Valeur du stock</div><div class="stat-val">${produits.reduce((s, p) => s + (Number(p.prix || 0) * (p.stock || 0)), 0).toLocaleString('fr-FR')}</div></div>`;
+
+      const cats = [...new Set(produits.map(p => p.categorie).filter(Boolean))];
+      document.getElementById('cats-list').innerHTML = cats.map(c => `<option value="${escapeHTML(c)}">`).join('');
+    }
+
+    document.getElementById('tbody').addEventListener('click', e => {
+      const b = e.target.closest('button[data-action]');
+      if (!b) return;
+      const p = produits.find(x => x.id === Number(b.dataset.id));
+      if (!p) return;
+      if (b.dataset.action === 'edit') ouvrirFormulaire(p);
+      if (b.dataset.action === 'del') supprimerProduit(p);
+      if (b.dataset.action === 'partager') copierLienProduit(p);
+    });
+
+    /* ---------- Lien WhatsApp prêt à partager ---------- */
+    function lienWhatsAppProduit(p) {
+      const numero = (config.whatsapp || '').replace(/[^0-9]/g, '');
+      const urlSite = (config.site_url || '').trim().replace(/\/?$/, '/');
+      const urlComplete = urlSite && !urlSite.includes('VOTRE-UTILISATEUR')
+        ? urlSite + 'produit/' + (p.slug || p.id) + '/' : '';
+      const message = `Bonjour ${config.nom_boutique || ''} ! 👋\nJe veux commander :\n\n🏷️ *${p.nom}*\n💰 ${Number(p.prix || 0).toLocaleString('fr-FR')} ${p.devise || config.devise || ''}`
+        + (urlComplete ? `\n🔗 ${urlComplete}` : '');
+      return 'https://wa.me/' + numero + '?text=' + encodeURIComponent(message);
+    }
+
+    async function copierLienProduit(p) {
+      const lien = lienWhatsAppProduit(p);
+      const urlManquante = !(config.site_url || '').trim() || (config.site_url || '').includes('VOTRE-UTILISATEUR');
+      try {
+        await navigator.clipboard.writeText(lien);
+        afficherToast(urlManquante
+          ? '🔗 Lien copié ! Renseignez l\'URL du site dans Apparence pour y inclure la page produit.'
+          : '🔗 Lien WhatsApp du produit copié ! Prêt à coller dans un statut ou un groupe.', 4500);
+      } catch (e) {
+        prompt('Copiez le lien WhatsApp du produit :', lien);
+      }
+    }
+
+    document.getElementById('recherche-admin').addEventListener('input', e => {
+      termeRecherche = e.target.value.toLowerCase();
+      rendreProduits();
+    });
+
+    function supprimerProduit(p) {
+      if (!confirm(`Supprimer définitivement « ${p.nom} » ?`)) return;
+      produits = produits.filter(x => x.id !== p.id);
+      marquerModifie();
+      rendreProduits();
+      afficherToast('🗑️ Article supprimé (local) — pensez à Publier');
+    }
+
+    /* ---------- Formulaire produit ---------- */
+    function ouvrirFormulaire(p = null) {
+      produitEnEdition = p ? p.id : null;
+      taillesEnCours = p ? [...(p.tailles || [])] : [];
+      couleursEnCours = p ? [...(p.couleurs || [])] : [];
+      imagesEnCours = p ? [...(p.images || [])] : [];
+
+      document.getElementById('form-titre').textContent = p ? 'Modifier l\'article' : 'Ajouter un article';
+      document.getElementById('f-nom').value = p ? p.nom : '';
+      document.getElementById('f-cat').value = p ? p.categorie : '';
+      document.getElementById('f-prix').value = p ? p.prix : '';
+      document.getElementById('f-prix-barre').value = p && p.prix_barre ? p.prix_barre : '';
+      document.getElementById('f-stock').value = p ? (p.stock ?? 0) : 10;
+      document.getElementById('f-devise').value = p ? (p.devise || config.devise || 'FCFA') : (config.devise || 'FCFA');
+      document.getElementById('f-desc').value = p ? (p.description || '') : '';
+      document.getElementById('f-actif').checked = p ? p.actif !== false : true;
+
+      rendreGalerieForm(); rendreTags('tailles'); rendreTags('couleurs');
+      document.getElementById('form-overlay').classList.add('ouverte');
+    }
+
+    function fermerFormulaire() { document.getElementById('form-overlay').classList.remove('ouverte'); }
+    document.getElementById('btn-ajouter').addEventListener('click', () => ouvrirFormulaire());
+    document.getElementById('btn-fermer-form').addEventListener('click', fermerFormulaire);
+    document.getElementById('btn-annuler-form').addEventListener('click', fermerFormulaire);
+    document.getElementById('form-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) fermerFormulaire(); });
+
+    function sauvegarderProduitLocal() {
+      const nom = document.getElementById('f-nom').value.trim();
+      const cat = document.getElementById('f-cat').value.trim();
+      const prix = parseFloat(document.getElementById('f-prix').value);
+      const prixBarre = parseFloat(document.getElementById('f-prix-barre').value) || null;
+      const stock = parseInt(document.getElementById('f-stock').value, 10) || 0;
+
+      if (!nom || !cat || isNaN(prix) || imagesEnCours.length === 0) {
+        return afficherToast('⚠️ Remplissez Nom, Catégorie, Prix et ajoutez au moins 1 photo.');
+      }
+
+      const slug = slugifier(nom);
+      const dataProd = {
+        id: produitEnEdition || (produits.reduce((m, p) => Math.max(m, Number(p.id) || 0), 0) + 1),
+        slug,
+        nom, categorie: cat, prix, prix_barre: prixBarre, stock,
+        devise: document.getElementById('f-devise').value,
+        description: document.getElementById('f-desc').value.trim(),
+        image: imagesEnCours[0], images: [...imagesEnCours],
+        tailles: [...taillesEnCours], couleurs: [...couleursEnCours],
+        actif: document.getElementById('f-actif').checked
+      };
+
+      // Slugs uniques : si un autre produit porte déjà ce slug, on suffixe
+      const conflit = produits.some(p => p.slug === slug && p.id !== dataProd.id);
+      if (conflit) {
+        let n = 2;
+        while (produits.some(p => p.slug === slug + '-' + n && p.id !== dataProd.id)) n++;
+        dataProd.slug = slug + '-' + n;
+      }
+
+      if (produitEnEdition) {
+        const idx = produits.findIndex(p => p.id === produitEnEdition);
+        produits[idx] = dataProd;
+        afficherToast('✓ Article modifié (local)');
+      } else {
+        produits.unshift(dataProd);
+        afficherToast('✓ Article ajouté (local)');
+      }
+      marquerModifie();
+      rendreProduits();
+      fermerFormulaire();
+    }
+    document.getElementById('btn-sauver-form').addEventListener('click', sauvegarderProduitLocal);
+
+    /* ---------- Compression & upload des images ---------- */
+    function compresserImage(file, largeurMax = 1000, qualite = 0.8) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = event => {
+          const img = new Image();
+          img.onerror = reject;
+          img.onload = () => {
+            const echelle = Math.min(1, largeurMax / img.width);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * echelle);
+            canvas.height = Math.round(img.height * echelle);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+              if (!blob) return reject(new Error('compression impossible'));
+              resolve(blob);
+            }, 'image/webp', qualite);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function gererUploadImages(event) {
+      const files = [...event.target.files];
+      if (files.length === 0) return;
+      if (!session) return afficherToast('Connectez-vous d\'abord pour téléverser les photos.');
+
+      for (const file of files) {
+        try {
+          let blob = await compresserImage(file);
+          if (blob.size > 950_000) blob = await compresserImage(file, 800, 0.7);
+          if (blob.size > 950_000) blob = await compresserImage(file, 640, 0.6);
+          if (blob.size > 950_000) return afficherToast('❌ Image trop volumineuse même compressée.');
+
+          const nomFichier = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.webp`;
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(await blob.arrayBuffer())));
+          afficherToast('⏳ Téléversement de la photo...', 60000);
+          await apiGitHub(`/repos/${session.repo}/contents/assets/produits/${nomFichier}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              message: 'ajout photo produit',
+              content: base64,
+              branch: session.branche
+            })
+          });
+          imagesEnCours.push('assets/produits/' + nomFichier);
+          rendreGalerieForm();
+          afficherToast('✓ Photo ajoutée');
+        } catch (e) {
+          afficherToast('❌ Erreur d\'upload : ' + e.message, 5000);
+        }
+      }
+      event.target.value = '';
+    }
+    document.getElementById('f-img-input').addEventListener('change', gererUploadImages);
+
+    function rendreGalerieForm() {
+      document.getElementById('galerie-previews').innerHTML = imagesEnCours.map((url, i) => `
+        <div class="galerie-preview-item">
+          <img src="${escapeHTML(url)}" alt="" />
+          <button class="btn-suppr-img" type="button" data-idx="${i}">✕</button>
+        </div>`).join('');
+    }
+    document.getElementById('galerie-previews').addEventListener('click', e => {
+      const b = e.target.closest('.btn-suppr-img');
+      if (b) { imagesEnCours.splice(Number(b.dataset.idx), 1); rendreGalerieForm(); }
+    });
+
+    /* ---------- Tags tailles / couleurs ---------- */
+    function brancherTags(type) {
+      const wrap = document.getElementById(type + '-wrap');
+      const input = document.getElementById(type + '-input');
+      wrap.addEventListener('click', () => input.focus());
+      input.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' && e.key !== ',') return;
+        e.preventDefault();
+        const val = input.value.trim().replace(/,+$/, '');
+        if (!val) return;
+        const arr = type === 'tailles' ? taillesEnCours : couleursEnCours;
+        if (!arr.includes(val)) { arr.push(val); rendreTags(type); }
+        input.value = '';
+      });
+    }
+    function supprimerTag(type, val) {
+      if (type === 'tailles') taillesEnCours = taillesEnCours.filter(t => t !== val);
+      else couleursEnCours = couleursEnCours.filter(c => c !== val);
+      rendreTags(type);
+    }
+    function rendreTags(type) {
+      const arr = type === 'tailles' ? taillesEnCours : couleursEnCours;
+      const wrap = document.getElementById(type + '-wrap');
+      const input = document.getElementById(type + '-input');
+      wrap.innerHTML = '';
+      arr.forEach(v => {
+        const span = document.createElement('span');
+        span.className = 'tag-chip';
+        const texte = document.createElement('span');
+        texte.textContent = v;
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.textContent = '×';
+        btn.addEventListener('click', () => supprimerTag(type, v));
+        span.append(texte, btn);
+        wrap.appendChild(span);
+      });
+      wrap.appendChild(input);
+    }
+    brancherTags('tailles'); brancherTags('couleurs');
+
+    /* ---------- Onglet Apparence ---------- */
+    function remplirApparence() {
+      const c = config;
+      document.getElementById('c-nom').value = c.nom_boutique || '';
+      document.getElementById('c-titre-hero').value = c.titre_hero || '';
+      document.getElementById('c-texte-hero').value = c.texte_hero || '';
+      document.getElementById('c-whatsapp').value = c.whatsapp || '';
+      document.getElementById('c-devise').value = c.devise || 'FCFA';
+      document.getElementById('c-site-url').value = c.site_url || '';
+      document.getElementById('c-image-hero').value = c.image_hero || '';
+      document.getElementById('c-image-partage').value = c.image_partage || '';
+      document.getElementById('c-goatcounter').value = c.goatcounter || '';
+      majLienGC();
+      const col = Object.assign({ fond:'#F7F3EE', nav:'#140F0A', accent:'#B5893F', texte:'#1A1410' }, c.couleurs || {});
+      document.getElementById('col-accent').value = col.accent;
+      document.getElementById('col-nav').value = col.nav;
+      document.getElementById('col-fond').value = col.fond;
+      document.getElementById('col-texte').value = col.texte;
+      majApercu();
+    }
+
+    function majLienGC() {
+      const code = document.getElementById('c-goatcounter').value.trim().replace(/[^a-zA-Z0-9-]/g, '');
+      document.getElementById('gc-lien').innerHTML = code
+        ? '📊 <a href="https://' + code + '.goatcounter.com" target="_blank" rel="noopener">Voir vos statistiques →</a>'
+        : 'Laisser vide pour désactiver les statistiques.';
+    }
+    document.getElementById('c-goatcounter').addEventListener('input', majLienGC);
+
+    function majApercu() {
+      const a = document.getElementById('apercu').style;
+      a.setProperty('--ap-accent', document.getElementById('col-accent').value);
+      a.setProperty('--ap-nav', document.getElementById('col-nav').value);
+      a.setProperty('--ap-fond', document.getElementById('col-fond').value);
+      a.setProperty('--ap-texte', document.getElementById('col-texte').value);
+      document.getElementById('apercu-nom-boutique').textContent = document.getElementById('c-nom').value || 'Boutique';
+    }
+    ['col-accent','col-nav','col-fond','col-texte'].forEach(id =>
+      document.getElementById(id).addEventListener('input', majApercu));
+    document.getElementById('c-nom').addEventListener('input', majApercu);
+
+    document.querySelectorAll('[data-palette]').forEach(b => b.addEventListener('click', () => {
+      const [accent, nav, fond, texte] = b.dataset.palette.split(',');
+      document.getElementById('col-accent').value = accent;
+      document.getElementById('col-nav').value = nav;
+      document.getElementById('col-fond').value = fond;
+      document.getElementById('col-texte').value = texte;
+      majApercu();
+    }));
+
+    /* ---------- QR code de la boutique ---------- */
+    async function chargerLibQR() {
+      if (typeof qrcode !== 'undefined') return true;
+      try {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      } catch (e) { /* hors ligne ou CDN inaccessible */ }
+      return typeof qrcode !== 'undefined';
+    }
+
+    document.getElementById('btn-qr').addEventListener('click', async () => {
+      const url = document.getElementById('c-site-url').value.trim();
+      const resultat = document.getElementById('qr-resultat');
+      if (!url || url.includes('VOTRE-UTILISATEUR')) {
+        return afficherToast('⚠️ Renseignez d\'abord l\'URL publique du site (champ ci-contre).');
+      }
+      const btn = document.getElementById('btn-qr');
+      btn.disabled = true; btn.textContent = 'Génération...';
+      const dispo = await chargerLibQR();
+      btn.disabled = false; btn.textContent = 'Générer le QR code';
+      if (!dispo) return afficherToast('❌ Génération impossible : connexion requise.', 5000);
+
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      const tailleModule = 10, marge = 12;
+      const img = new Image();
+      img.onload = () => {
+        // Export en PNG net (le GIF de la librairie est redessiné sur canvas)
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        const png = canvas.toDataURL('image/png');
+        resultat.innerHTML = `
+          <img src="${png}" alt="QR code de la boutique" style="width:220px;border:8px solid #fff;border-radius:12px;box-shadow:var(--ombre);background:#fff" />
+          <div style="margin-top:12px">
+            <a href="${png}" download="qr-boutique.png" style="color:var(--bleu);font-weight:600;text-decoration:none">⬇️ Télécharger le PNG</a>
+          </div>`;
+      };
+      img.onerror = () => afficherToast('❌ Erreur lors de la génération.');
+      img.src = qr.createDataURL(tailleModule, marge);
+    });
+
+    document.getElementById('btn-sauver-apparence').addEventListener('click', () => {
+      config = {
+        nom_boutique: document.getElementById('c-nom').value.trim() || 'Boutique',
+        titre_hero: document.getElementById('c-titre-hero').value.trim(),
+        texte_hero: document.getElementById('c-texte-hero').value.trim(),
+        whatsapp: document.getElementById('c-whatsapp').value.replace(/[^0-9]/g, ''),
+        devise: document.getElementById('c-devise').value,
+        site_url: document.getElementById('c-site-url').value.trim(),
+        image_hero: document.getElementById('c-image-hero').value.trim() || 'assets/hero.svg',
+        image_partage: document.getElementById('c-image-partage').value.trim() || 'assets/hero.svg',
+        goatcounter: document.getElementById('c-goatcounter').value.trim(),
+        couleurs: {
+          fond: document.getElementById('col-fond').value,
+          nav: document.getElementById('col-nav').value,
+          accent: document.getElementById('col-accent').value,
+          texte: document.getElementById('col-texte').value
+        }
+      };
+      modifie = true;
+      afficherToast('✓ Apparence modifiée (local) — pensez à Publier');
+    });
+
+    /* ---------- Onglets ---------- */
+    document.getElementById('onglet-produits').addEventListener('click', () => basculerOnglet('produits'));
+    document.getElementById('onglet-apparence').addEventListener('click', () => basculerOnglet('apparence'));
+    function basculerOnglet(onglet) {
+      document.getElementById('vue-produits').style.display = onglet === 'produits' ? 'block' : 'none';
+      document.getElementById('vue-apparence').style.display = onglet === 'apparence' ? 'block' : 'none';
+      document.getElementById('onglet-produits').style.borderColor = onglet === 'produits' ? 'var(--or)' : 'rgba(255,255,255,.15)';
+      document.getElementById('onglet-apparence').style.borderColor = onglet === 'apparence' ? 'var(--or)' : 'rgba(255,255,255,.15)';
+    }
+
+    /* ---------- Publication (commit vers GitHub) ---------- */
+    document.getElementById('btn-publier').addEventListener('click', async () => {
+      if (!modifie) return afficherToast('Aucune modification à publier.');
+      const btn = document.getElementById('btn-publier');
+      btn.disabled = true; btn.textContent = '⏳ Publication...';
+      try {
+        const horodatage = new Date().toLocaleString('fr-FR');
+
+        // Si le catalogue a changé ailleurs entre-temps (édition directe sur GitHub),
+        // on demande confirmation avant d'écraser.
+        try {
+          const dernierProd = await chargerFichier('data/products.json');
+          if (dernierProd && dernierProd.sha !== shaProduits) {
+            if (!confirm('Le catalogue a été modifié ailleurs entre-temps. Écraser avec votre version locale ?')) {
+              btn.disabled = false; btn.textContent = '💾 Publier';
+              return;
+            }
+            shaProduits = dernierProd.sha;
+          }
+        } catch (e) { /* fichier absent (première publication) */ }
+
+        await ecrireFichier('data/products.json', JSON.stringify(produits, null, 2) + '\n', shaProduits, 'catalogue: mise à jour des produits (' + horodatage + ')');
+        shaProduits = await relireSha('data/products.json');
+
+        try {
+          const dernierConf = await chargerFichier('data/config.json');
+          if (dernierConf && dernierConf.sha !== shaConfig) {
+            if (confirm('La configuration a été modifiée ailleurs entre-temps. Écraser avec votre version locale ?')) {
+              shaConfig = dernierConf.sha;
+            }
+          }
+        } catch (e) { /* fichier absent */ }
+
+        await ecrireFichier('data/config.json', JSON.stringify(config, null, 2) + '\n', shaConfig, 'catalogue: mise à jour de l\'apparence (' + horodatage + ')');
+        shaConfig = await relireSha('data/config.json');
+
+        modifie = false;
+        localStorage.removeItem('catalogue_draft');
+        afficherToast('✅ Publié sur GitHub ! Les pages WhatsApp se régénèrent dans ~1 minute.', 6000);
+      } catch (e) {
+        afficherToast('❌ Échec de la publication : ' + e.message, 6000);
+      }
+      btn.disabled = false; btn.textContent = '💾 Publier';
+    });
+
+    async function relireSha(chemin) {
+      const f = await chargerFichier(chemin);
+      return f ? f.sha : null;
+    }
+
+    document.getElementById('btn-connexion').addEventListener('click', seConnecter);
+    document.getElementById('login-token').addEventListener('keydown', e => { if (e.key === 'Enter') seConnecter(); });
+    document.getElementById('btn-deconnexion').addEventListener('click', seDeconnecter);
+
+    /* ---------- Démarrage ---------- */
+    (async function demarrer() {
+      const detecte = detecterDepot();
+      if (detecte) document.getElementById('login-repo').value = detecte;
+      const sauvegarde = localStorage.getItem(CLE_SESSION);
+      if (sauvegarde) {
+        const s = JSON.parse(sauvegarde);
+        document.getElementById('login-repo').value = s.repo;
+        document.getElementById('login-branche').value = s.branche;
+        document.getElementById('login-token').focus();
+        afficherToast('Renseignez votre token pour vous reconnecter');
+      }
+    })();
+  </script>
+</body>
+</html>

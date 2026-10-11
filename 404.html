@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page introuvable</title>
+  <style>
+    body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;background:#F7F3EE;color:#1A1410;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
+    h1{font-family:Georgia,serif;font-size:2.2rem;color:#B5893F;margin-bottom:10px}
+    a{color:#1A1410;font-weight:600;text-decoration:none;border:2px solid #1A1410;padding:12px 28px;border-radius:10px;margin-top:20px;display:inline-block}
+  </style>
+</head>
+<body>
+  <h1>Cette page n'existe pas</h1>
+  <p>L'article a peut-être été retiré du catalogue.</p>
+  <a id="retour" href="/">← Retour à la boutique</a>
+  <script>
+    // GitHub Pages sert les sites sous /nom-du-depot/ : on ramène vers la racine du site
+    (function () {
+      var segments = window.location.pathname.split('/').filter(Boolean);
+      var cible = segments.length ? '/' + segments[0] + '/' : '/';
+      document.getElementById('retour').href = cible;
+    })();
+  </script>
+</body>
+</html>
