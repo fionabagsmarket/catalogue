@@ -1,0 +1,17 @@
+{
+  "nom_boutique": "ELTShop",
+  "titre_hero": "L'Élégance Au Quotidien",
+  "texte_hero": "Des pièces pensées pour sublimer votre style. Qualité premium, design exclusif.",
+  "whatsapp": "22870901801",
+  "devise": "FCFA",
+  "site_url": "https://VOTRE-UTILISATEUR.github.io/VOTRE-REPO/",
+  "image_hero": "assets/hero.svg",
+  "image_partage": "assets/hero.svg",
+  "goatcounter": "",
+  "couleurs": {
+    "fond": "#F7F3EE",
+    "nav": "#140F0A",
+    "accent": "#B5893F",
+    "texte": "#1A1410"
+  }
+}
