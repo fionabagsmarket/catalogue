@@ -16,25 +16,5 @@
     "tailles": [],
     "couleurs": [],
     "actif": true
-  },
-  {
-    "id": 4,
-    "slug": "montre-classique-or",
-    "nom": "Montre classique dorée",
-    "categorie": "Accessoires",
-    "prix": 12000,
-    "prix_barre": null,
-    "stock": 0,
-    "devise": "FCFA",
-    "description": "Montre à quartz, bracelet acier doré.\nÉtanche, boîte cadeau offerte.",
-    "image": "assets/produits/demo-montre.svg",
-    "images": [
-      "assets/produits/demo-montre.svg"
-    ],
-    "tailles": [],
-    "couleurs": [
-      "Doré"
-    ],
-    "actif": true
   }
 ]
