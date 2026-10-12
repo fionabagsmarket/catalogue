@@ -1,45 +1,20 @@
 [
   {
-    "id": 2,
-    "slug": "parfum-oud-royal",
-    "nom": "Parfum Oud Royal",
-    "categorie": "Parfumerie",
-    "prix": 15000,
+    "id": 5,
+    "slug": "sac-m",
+    "nom": "Sac M",
+    "categorie": "Sacs",
+    "prix": 2000,
     "prix_barre": null,
-    "stock": 12,
+    "stock": 10,
     "devise": "FCFA",
-    "description": "Eau de parfum aux notes boisées et orientales.\nTenue longue durée, flacon 50 ml.\nProduit original sous blister.",
-    "image": "assets/produits/demo-parfum.svg",
+    "description": "",
+    "image": "assets/produits/1791829838288_823ced.webp",
     "images": [
-      "assets/produits/demo-parfum.svg"
+      "assets/produits/1791829838288_823ced.webp"
     ],
     "tailles": [],
     "couleurs": [],
-    "actif": true
-  },
-  {
-    "id": 3,
-    "slug": "robe-wax-elegance",
-    "nom": "Robe wax élégance",
-    "categorie": "Vêtements",
-    "prix": 18500,
-    "prix_barre": 22000,
-    "stock": 5,
-    "devise": "FCFA",
-    "description": "Robe coupe ajustée en wax authentique.\nConfection locale, coutures renforcées.\nDisponible en plusieurs tailles et coloris.",
-    "image": "assets/produits/demo-robe.svg",
-    "images": [
-      "assets/produits/demo-robe.svg"
-    ],
-    "tailles": [
-      "S",
-      "M",
-      "L"
-    ],
-    "couleurs": [
-      "Bleu",
-      "Orange"
-    ],
     "actif": true
   },
   {
