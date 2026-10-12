@@ -1,5 +1,23 @@
 [
   {
+    "id": 6,
+    "slug": "sac-fle",
+    "nom": "Sac fle",
+    "categorie": "Sacs",
+    "prix": 2500,
+    "prix_barre": 3000,
+    "stock": 10,
+    "devise": "FCFA",
+    "description": "Sac avec flair vert, pour vos sorties meet",
+    "image": "assets/produits/1791832328015_kf7968.webp",
+    "images": [
+      "assets/produits/1791832328015_kf7968.webp"
+    ],
+    "tailles": [],
+    "couleurs": [],
+    "actif": true
+  },
+  {
     "id": 5,
     "slug": "sac-m",
     "nom": "Sac M",
