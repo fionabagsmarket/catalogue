@@ -35,13 +35,20 @@
     /* PAGE ADMIN */
     .admin-page{display:none}
     .admin-page.visible{display:block}
-    .topbar{background:var(--nav);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4%,40px);position:sticky;top:0;z-index:100;gap:10px;flex-wrap:wrap}
+    .topbar{background:var(--nav);min-height:60px;display:flex;align-items:center;justify-content:space-between;padding:10px clamp(16px,4%,40px);position:sticky;top:0;z-index:100;gap:10px;flex-wrap:wrap}
     .topbar-logo{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--or);text-decoration:none}
     .topbar-droite{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .topbar-btn{background:none;border:1px solid rgba(255,255,255,.15);color:#fff;padding:7px 14px;border-radius:6px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;text-decoration:none;font-size:.8rem;font-family:inherit}
     .topbar-btn.publier{background:var(--or);border-color:var(--or);color:var(--nav);font-weight:600}
     .topbar-btn.publier:disabled{opacity:.6;cursor:wait}
     .etat-connexion{font-size:.72rem;color:rgba(255,255,255,.55)}
+    /* Sur mobile : topbar plus compacte, boutons plus petits pour éviter trop de wrap */
+    @media(max-width:560px){
+      .topbar{padding:8px 12px;gap:6px}
+      .topbar-logo{font-size:1.05rem}
+      .topbar-btn{padding:6px 10px;font-size:.74rem}
+      .topbar-droite{gap:6px}
+    }
 
     .admin-main{max-width:1100px;margin:0 auto;padding:30px clamp(16px,4%,40px) 60px}
     .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px;margin-bottom:24px}
@@ -55,10 +62,16 @@
     .note-brouillon{font-size:.78rem;color:var(--texte-2);margin-bottom:16px;background:#FFF8E8;border:1px solid #F0E2B6;border-radius:8px;padding:10px 14px}
     .note-brouillon b{color:var(--rouge)}
 
-    .table-wrap{background:var(--blanc);border-radius:14px;box-shadow:var(--ombre);overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
-    table{min-width:640px;width:100%;border-collapse:collapse}
-    th{padding:14px 16px;text-align:left;font-size:.7rem;color:var(--texte-2);text-transform:uppercase;background:#FAF7F3}
+    .table-wrap{background:var(--blanc);border-radius:14px;box-shadow:var(--ombre);overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;position:relative}
+    table{min-width:520px;width:100%;border-collapse:collapse}
+    th{padding:14px 16px;text-align:left;font-size:.7rem;color:var(--texte-2);text-transform:uppercase;background:#FAF7F3;white-space:nowrap}
     td{padding:14px 16px;border-top:1px solid var(--pierre);vertical-align:middle}
+    /* Empêche les slugs et noms de casser la mise en page ; le tableau scroll horizontalement */
+    .td-nom{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .td-slug{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    /* Indicateur visuel "scroll →" sur le bord droit du tableau quand il y a dépassement */
+    .table-wrap.is-scrollable::after{content:'⇄';position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--or);color:var(--nav);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;opacity:.85;pointer-events:none;animation:fadein 1s}
+    @keyframes fadein{from{opacity:0}to{opacity:.85}}
     .td-image img{width:52px;height:52px;object-fit:cover;border-radius:8px;background:var(--pierre)}
     .badge-inactif{display:inline-block;background:var(--pierre);color:var(--texte-2);font-size:.68rem;padding:2px 8px;border-radius:100px;margin-left:6px}
     .btn-edit,.btn-del{background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;font-size:1rem}
@@ -81,6 +94,17 @@
     .galerie-preview-item{position:relative;width:72px;height:72px}
     .galerie-preview-item img{width:100%;height:100%;object-fit:cover;border-radius:8px;background:var(--pierre)}
     .btn-suppr-img{position:absolute;top:-6px;right:-6px;background:var(--rouge);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer}
+    /* Dropzone stylisée pour l'upload de photos (input file natif caché) */
+    .file-dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:24px 16px;border:2px dashed var(--pierre);border-radius:12px;background:var(--fond);cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+    .file-dropzone:hover,.file-dropzone:active{border-color:var(--or);background:#FFF8E8}
+    .file-dropzone-icone{font-size:1.8rem;line-height:1}
+    .file-dropzone-texte{font-weight:600;font-size:.92rem;color:var(--texte)}
+    .file-dropzone-hint{font-size:.74rem;color:var(--texte-2)}
+    /* Bloc d'aide pour le token (affiché après une erreur d'upload) */
+    .upload-aide{margin-top:10px;background:#FFF4F4;border:1.5px solid #F5C8C8;color:#7A1F1F;border-radius:10px;padding:12px 14px;font-size:.78rem;line-height:1.55}
+    .upload-aide a{color:#7A1F1F;text-decoration:underline}
+    .upload-aide code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;font-family:'SFMono-Regular',Consolas,monospace;font-size:.74rem}
+    .upload-aide b{color:#5A0F0F}
     .tags-input-wrap{display:flex;flex-wrap:wrap;gap:7px;padding:10px;border:1.5px solid var(--pierre);border-radius:8px;min-height:48px;cursor:text}
     .tag-chip{background:var(--fond);border:1px solid var(--pierre);padding:3px 10px;border-radius:100px;font-size:.78rem;display:flex;align-items:center;gap:5px}
     .tag-chip button{background:none;border:none;color:var(--rouge);cursor:pointer}
@@ -128,6 +152,12 @@
       <input class="login-input" type="password" id="login-token" placeholder="Token GitHub (PAT)" />
       <button class="login-btn" id="btn-connexion">Se connecter →</button>
       <p class="login-erreur" id="login-erreur"></p>
+      <div class="login-aide">
+        <b>Comment obtenir un token ?</b><br>
+        GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token.<br>
+        Sélectionnez uniquement ce dépôt et donnez la permission <b>Contents : Read and write</b>.
+        Le token reste dans votre navigateur et n'est jamais publié. <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">Créer un token →</a>
+      </div>
     </div>
   </div>
 
@@ -301,9 +331,23 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Photos (compressées automatiquement en WebP)</label>
-          <input class="form-input" type="file" id="f-img-input" accept="image/*" multiple />
+          <label class="form-label" for="f-img-input">Photos (compressées automatiquement en WebP)</label>
+          <label class="file-dropzone" for="f-img-input">
+            <span class="file-dropzone-icone">📁</span>
+            <span class="file-dropzone-texte">Cliquez pour choisir des photos</span>
+            <span class="file-dropzone-hint">JPG, PNG, WebP — plusieurs fichiers acceptés</span>
+          </label>
+          <input type="file" id="f-img-input" accept="image/*" multiple hidden />
           <div class="galerie-previews" id="galerie-previews"></div>
+          <p class="upload-aide" id="upload-aide" hidden>
+            ⚠️ <b>Si l'upload échoue avec « Resource not accessible by personal access token »</b> :
+            votre token GitHub n'a pas la permission d'écrire les images. Sur
+            <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com → Settings → Developer settings → Personal access tokens</a>,
+            éditez votre token et vérifiez :
+            <br>① <b>Repository access</b> → <i>Only select repositories</i> → dépôt <code>nabagsmarket/catalogue</code> coché.
+            <br>② <b>Repository permissions → Contents</b> → <i>Read and write</i> (et non <i>Read</i> seul).
+            <br>Ensuite, <b>Déconnexion → reconnexion</b> avec le nouveau token.
+          </p>
         </div>
 
         <div class="form-group">
@@ -515,7 +559,7 @@
       tbody.innerHTML = filtres.map(p => `
         <tr>
           <td class="td-image"><img src="${escapeHTML(p.images?.[0] || p.image || '')}" alt="" /></td>
-          <td><b>${escapeHTML(p.nom)}</b>${p.actif === false ? '<span class="badge-inactif">masqué</span>' : ''}<br><span style="font-size:.72rem;color:gray">${escapeHTML(p.slug || p.id)}</span></td>
+          <td class="td-nom" title="${escapeHTML(p.nom + ' — ' + (p.slug || p.id))}"><b>${escapeHTML(p.nom)}</b>${p.actif === false ? '<span class="badge-inactif">masqué</span>' : ''}<br><span class="td-slug" style="font-size:.72rem;color:gray">${escapeHTML(p.slug || p.id)}</span></td>
           <td>
             ${escapeHTML(p.categorie)}<br>
             <span style="font-size:.7rem;color:gray">${escapeHTML((p.tailles || []).join(', '))}</span><br>
@@ -542,6 +586,12 @@
 
       const cats = [...new Set(produits.map(p => p.categorie).filter(Boolean))];
       document.getElementById('cats-list').innerHTML = cats.map(c => `<option value="${escapeHTML(c)}">`).join('');
+      // Active l'indicateur visuel ⇄ si le tableau déborde (mobile surtout).
+      const wrap = document.querySelector('.table-wrap');
+      if (wrap) {
+        const estScrollable = wrap.scrollWidth > wrap.clientWidth + 4;
+        wrap.classList.toggle('is-scrollable', estScrollable);
+      }
     }
 
     document.getElementById('tbody').addEventListener('click', e => {
@@ -609,6 +659,9 @@
       document.getElementById('f-actif').checked = p ? p.actif !== false : true;
 
       rendreGalerieForm(); rendreTags('tailles'); rendreTags('couleurs');
+      // Réinitialise le bloc d'aide upload à chaque ouverture (il ne s'affiche
+      // que suite à une erreur réelle d'upload de photo).
+      document.getElementById('upload-aide').hidden = true;
       document.getElementById('form-overlay').classList.add('ouverte');
     }
 
@@ -664,6 +717,23 @@
     document.getElementById('btn-sauver-form').addEventListener('click', sauvegarderProduitLocal);
 
     /* ---------- Compression & upload des images ---------- */
+    // Convertit un Blob en base64 de façon robuste (sans limite de taille,
+    // contrairement à btoa(String.fromCharCode(...new Uint8Array(...))) qui
+    // explose la pile d'appels au-delà de ~65 000 octets).
+    function blobVersBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(reader.error || new Error('FileReader échec'));
+        reader.onload = () => {
+          // reader.result est "data:<mime>;base64,XXXX..." — on retire le préfixe.
+          const r = reader.result;
+          const i = r.indexOf(',');
+          resolve(i >= 0 ? r.slice(i + 1) : r);
+        };
+        reader.readAsDataURL(blob);
+      });
+    }
+
     function compresserImage(file, largeurMax = 1000, qualite = 0.8) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -701,7 +771,8 @@
           if (blob.size > 950_000) return afficherToast('❌ Image trop volumineuse même compressée.');
 
           const nomFichier = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.webp`;
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(await blob.arrayBuffer())));
+          // Conversion base64 robuste (FileReader) — fonctionne pour tout taille de blob.
+          const base64 = await blobVersBase64(blob);
           afficherToast('⏳ Téléversement de la photo...', 60000);
           await apiGitHub(`/repos/${session.repo}/contents/assets/produits/${nomFichier}`, {
             method: 'PUT',
@@ -715,7 +786,17 @@
           rendreGalerieForm();
           afficherToast('✓ Photo ajoutée');
         } catch (e) {
-          afficherToast('❌ Erreur d\'upload : ' + e.message, 5000);
+          // Message d'erreur explicite : si GitHub répond 403 "Resource not
+          // accessible by personal access token", le token n'a pas la perm
+          // d'écrire dans assets/produits/ — on affiche la checklist token.
+          if (e.status === 403 && /personal access token/i.test(e.message || '')) {
+            document.getElementById('upload-aide').hidden = false;
+            afficherToast('❌ Token GitHub insuffisant pour l\'upload — voir l\'encadré d\'aide ci-dessous.', 8000);
+          } else if (e.status === 404) {
+            afficherToast('❌ Dépôt introuvable — vérifiez le nom du dépôt à la connexion (ex: nabagsmarket/catalogue).', 8000);
+          } else {
+            afficherToast('❌ Erreur d\'upload : ' + e.message, 6000);
+          }
         }
       }
       event.target.value = '';
