@@ -5,9 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <meta name="description" content="Catalogue en ligne. Commandez directement sur WhatsApp." />
-  <title>ELTShop — Boutique Officielle</title>
+  <!-- Anti-cache : le HTML lui-même ne doit pas rester en cache navigateur,
+       sinon les clients voient une vieille version du script de mise à jour. -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Fiona Bags — Boutique Officielle</title>
   <!-- OG:AUTO -->
-  <meta property="og:title" content="ELTShop — Boutique Officielle" />
+  <meta property="og:title" content="Fiona Bags — Boutique Officielle" />
   <meta property="og:description" content="Des pièces pensées pour sublimer votre style. Qualité premium, design exclusif." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://VOTRE-UTILISATEUR.github.io/VOTRE-REPO/" />
@@ -162,8 +167,9 @@
     .footer-liens a{color:rgba(255,255,255,.7);text-decoration:none;}
     .footer-bas{text-align:center;padding-top:30px;border-top:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:.8rem}
 
-    .toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%, 20px);background:var(--nav);color:#fff;padding:12px 24px;border-radius:100px;font-size:.85rem;z-index:1000;opacity:0;transition:all .3s;pointer-events:none}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%, 20px);background:var(--nav);color:#fff;padding:12px 24px;border-radius:100px;font-size:.85rem;z-index:1000;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center}
     .toast.visible{transform:translate(-50%, 0);opacity:1}
+    .toast.actionnable{pointer-events:auto;cursor:pointer}
   </style>
 </head>
 <body>
@@ -361,10 +367,20 @@
       return resultat + escapeHTML(nom.slice(pos));
     }
 
-    function afficherToast(msg) {
+    function afficherToast(msg, duree = 3000) {
       const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.add('visible');
-      setTimeout(() => t.classList.remove('visible'), 3000);
+      t.textContent = msg;
+      t.classList.remove('actionnable');
+      t.classList.add('visible');
+      if (t._timeout) clearTimeout(t._timeout);
+      t._timeout = setTimeout(() => t.classList.remove('visible'), duree);
+    }
+    function afficherToastActionnable(msg, duree = 8000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('visible', 'actionnable');
+      if (t._timeout) clearTimeout(t._timeout);
+      t._timeout = setTimeout(() => t.classList.remove('visible', 'actionnable'), duree);
     }
 
     function urlProduit(p) {
@@ -501,11 +517,16 @@
     }
 
     async function init() {
-      // 1. Le manifeste (minuscule, toujours demandé hors cache) annonce la version
-      //    du dernier build publié : c'est lui qui invalide le cache des données.
-      let manifest = null;
-      try { manifest = await (await fetch(MANIFEST_URL, { cache: 'no-store' })).json(); } catch (e) { manifest = null; }
-      if (manifest && typeof manifest.version === 'string') versionCatalogue = manifest.version;
+      // 1. Le manifeste (minuscule) annonce la version du dernier build publié.
+      //    On l'amorce avec un cache-bust par timestamp (_t=Date.now()) qui
+      //    contourne À LA FOIS le cache navigateur ET le cache edge de GitHub
+      //    Pages (qui sert max-age=600). `cache: 'no-store'` seul ne suffit pas
+      //    car il n'agit que sur le cache local du navigateur.
+      let manifest = await chargerManifest();
+      if (manifest && typeof manifest.version === 'string') {
+        versionCatalogue = manifest.version;
+        derniereVersionConnue = manifest.version;
+      }
 
       // 2. Configuration, signée avec cette version
       let configCharge = null;
@@ -523,6 +544,93 @@
       appliquerFiltre('Tous');
       verifierLienPartage();
       chargerStats();
+
+      // 3. Surveiller les mises à jour en arrière-plan : polling toutes les
+      //    60 s + re-vérification au retour sur l'onglet. Les clients voient
+      //    ainsi les nouveaux articles (et les suppressions) sans recharger.
+      surveillerMisesAJour();
+    }
+
+    /* ---------- Mises à jour en temps réel (polling + cache-bust) ---------- */
+    // On ajoute un timestamp à chaque URL de métadonnées pour forcer un
+    // re-fetch depuis GitHub Pages (dont le cache edge dure ~10 min).
+    function urlFraiche(url) {
+      const sep = url.includes('?') ? '&' : '?';
+      return url + sep + '_t=' + Date.now();
+    }
+
+    async function chargerManifest() {
+      try {
+        const r = await fetch(urlFraiche(MANIFEST_URL), { cache: 'no-store' });
+        if (!r.ok) return null;
+        return await r.json();
+      } catch (e) { return null; }
+    }
+
+    let derniereVersionConnue = '';
+    let intervallePolling = null;
+    let miseAJourEnAttente = false; // une mise à jour est détectée mais l'utilisateur est occupé
+
+    function surveillerMisesAJour() {
+      if (intervallePolling) return;
+      // Polling discret : toutes les 60 s quand l'onglet est visible
+      intervallePolling = setInterval(verifierMiseAJour, 60000);
+      // Re-vérifier immédiatement quand l'utilisateur revient sur l'onglet
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) setTimeout(verifierMiseAJour, 200);
+      });
+    }
+
+    async function verifierMiseAJour() {
+      // Inutile de vérifier si l'onglet est en arrière-plan ou hors ligne
+      if (document.hidden || !navigator.onLine) return;
+      const manifest = await chargerManifest();
+      if (!manifest || typeof manifest.version !== 'string') return;
+      if (manifest.version === derniereVersionConnue) return;
+
+      // Nouvelle version détectée !
+      derniereVersionConnue = manifest.version;
+
+      // Si l'utilisateur est en train de consulter un produit ou son panier,
+      // on ne lui casse pas l'expérience : on attend qu'il ferme.
+      const occupe = document.body.classList.contains('modal-ouverte');
+      if (occupe) {
+        miseAJourEnAttente = true;
+        afficherToastActionnable('✨ De nouveaux articles sont disponibles — fermez cette fenêtre pour les voir.', 12000);
+        return;
+      }
+      await appliquerMiseAJour(manifest);
+    }
+
+    async function appliquerMiseAJour(manifest) {
+      versionCatalogue = manifest.version;
+      // 1. Recharger la config (couleurs, nom, WhatsApp, hero…) silencieusement
+      try {
+        const configCharge = await (await fetch(urlVersionnee(CONFIG_URL))).json();
+        if (configCharge) appliquerConfig(configCharge);
+      } catch (e) { /* on garde l'ancienne config */ }
+      // 2. Recharger le catalogue sans perdre le panier (localStorage)
+      try {
+        rendus = 0;
+        await chargerCatalogue(manifest);
+        viderGrille();
+        construireFiltres();
+        appliquerFiltre(filtreActif);
+        afficherToast('✨ Catalogue mis à jour', 3500);
+      } catch (e) {
+        console.warn('Rechargement catalogue échoué :', e);
+      }
+    }
+
+    // Appelé après fermeture du modal/panier : déclenche la mise à jour en attente
+    async function declencherMiseAJourSiEnAttente() {
+      if (!miseAJourEnAttente) return;
+      if (document.body.classList.contains('modal-ouverte')) return; // l'autre est encore ouverte
+      miseAJourEnAttente = false;
+      const manifest = await chargerManifest();
+      if (manifest && typeof manifest.version === 'string' && manifest.version !== versionCatalogue) {
+        await appliquerMiseAJour(manifest);
+      }
     }
 
     function construireFiltres() {
@@ -748,6 +856,7 @@
       document.body.classList.remove('modal-ouverte');
       produitActuel = null;
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      declencherMiseAJourSiEnAttente();
     }
     document.getElementById('btn-fermer-modal').addEventListener('click', fermerModal);
     document.getElementById('overlay').addEventListener('click', e => { if (e.target === e.currentTarget) fermerModal(); });
@@ -853,7 +962,7 @@
     }
 
     function ouvrirPanier() { rendrePanier(); document.getElementById('panier-overlay').classList.add('ouvert'); document.body.classList.add('modal-ouverte'); }
-    function fermerPanier() { document.getElementById('panier-overlay').classList.remove('ouvert'); document.body.classList.remove('modal-ouverte'); }
+    function fermerPanier() { document.getElementById('panier-overlay').classList.remove('ouvert'); document.body.classList.remove('modal-ouverte'); declencherMiseAJourSiEnAttente(); }
     document.getElementById('btn-panier').addEventListener('click', ouvrirPanier);
     document.getElementById('btn-fermer-panier').addEventListener('click', fermerPanier);
     document.getElementById('panier-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) fermerPanier(); });
