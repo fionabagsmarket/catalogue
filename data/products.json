@@ -32,7 +32,9 @@
       "assets/produits/1791829838288_823ced.webp"
     ],
     "tailles": [],
-    "couleurs": [],
+    "couleurs": [
+      "Noire"
+    ],
     "actif": true
   }
 ]
