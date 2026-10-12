@@ -458,7 +458,12 @@
     /* ---------- Chargement des données ---------- */
     async function chargerFichier(chemin) {
       try {
-        const data = await apiGitHub(`/repos/${session.repo}/contents/${chemin}?ref=${encodeURIComponent(session.branche)}`);
+        // Cache-bust par timestamp : l'API GitHub met en cache les réponses
+        // (~60s). On ajoute un paramètre inerte pour forcer un rafraîchissement
+        // immédiat après une publication, sinon l'admin verrait une version
+        // périmée de son propre catalogue.
+        const sep = chemin.includes('?') ? '&' : '?';
+        const data = await apiGitHub(`/repos/${session.repo}/contents/${chemin}${sep}ref=${encodeURIComponent(session.branche)}&_t=${Date.now()}`);
         return { sha: data.sha, contenu: b64DecodeUtf8(data.content) };
       } catch (e) {
         if (e.status === 404) return null;
@@ -950,7 +955,11 @@
 
         modifie = false;
         localStorage.removeItem('catalogue_draft');
-        afficherToast('✅ Publié sur GitHub ! Les pages WhatsApp se régénèrent dans ~1 minute.', 6000);
+        afficherToast('✅ Publié sur GitHub ! GitHub Actions régénère le site (~1 min). Les clients connectés verront automatiquement « ✨ Catalogue mis à jour » dans les 60 s qui suivent.', 8000);
+        // Mettre à jour le lien "Catalogue" pour forcer le bypass du cache
+        // navigateur/Pages (sinon l'admin verrait sa propre ancienne version).
+        const lien = document.getElementById('lien-boutique');
+        if (lien) lien.href = 'index.html?_t=' + Date.now();
       } catch (e) {
         afficherToast('❌ Échec de la publication : ' + e.message, 6000);
       }
